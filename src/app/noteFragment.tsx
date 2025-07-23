@@ -24,12 +24,16 @@ type Props = {
 
 export default function NoteFragment(props: Props) {
   const containerRef: RefObject<HTMLDivElement | null> = useRef(null);
-  // const [notes, setNotes] = useState(fragment1);
+
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+    event.dataTransfer.setData("application/NoteFragmentData", JSON.stringify(props.fragment))
+  };
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const div = containerRef.current;
+    if (!div) return;
 
-    const renderer = new Renderer(containerRef.current, Renderer.Backends.SVG);
+    const renderer = new Renderer(div, Renderer.Backends.SVG);
     const scale = props.scale ? props.scale : 1.0;
     const width = props.width ? props.width : 500;
     const height = props.height ? props.height : 200;
@@ -56,14 +60,14 @@ export default function NoteFragment(props: Props) {
       return sn;
     })
 
-    const beams = Beam.generateBeams(staveNotes, {flatBeams: true});
+    const beams = Beam.generateBeams(staveNotes, { flatBeams: true });
     Formatter.FormatAndDraw(context, stave, staveNotes);
 
     beams.forEach((b) => {
       b.setContext(context).draw();
     });
 
-    const svg = containerRef.current.querySelector("svg");
+    const svg = div.querySelector("svg");
     if (svg != null) {
       svg.setAttribute("width", `${width * scale}`);
       svg.setAttribute("height", `${height * scale}`);
@@ -72,6 +76,6 @@ export default function NoteFragment(props: Props) {
   }, []);
 
   return (
-    <div ref={containerRef} draggable="true"></div>
+    <div ref={containerRef} draggable="true" onDragStart={handleDragStart}></div>
   );
 }
