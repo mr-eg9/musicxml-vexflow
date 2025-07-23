@@ -1,129 +1,73 @@
 'use client'
 
-import { useEffect, useRef } from "react";
-import VexFlow from "vexflow";
-import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam, Dot, StaveTie } from "vexflow";
+import { RefObject, useEffect, useRef } from "react";
+import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam } from "vexflow";
 
-type Note = {
-    key: string,
-    duration: string,
-    accidental: "##" | "#" | "n" | "b" | "bb",
+export type Note = {
+  key: string,
+  duration: string,
+  accidental: "##" | "#" | "n" | "b" | "bb" | null,
 }
 
-type NoteFragmentData = {
-    key: null | "treble" | "bass",
-    time: null | "4/4" | "3/4",
-    notes: [Note],
+export type NoteFragmentData = {
+  clef: null | "treble" | "bass",
+  time: null | "4/4" | "3/4",
+  notes: Note[],
 };
 
-const example_notes: NoteFragmentData = {
-    key: null,
-    time: null,
-    notes: [
-        {key: "", duration: "", accidental: ""}
-    ],
-}
+type Props = {
+  width?: number,
+  height?: number,
+  scale?: number,
+  fragment: NoteFragmentData,
+};
 
-export default function NoteFragment(props) {
-  const containerRef = useRef(null);
+export default function NoteFragment(props: Props) {
+  const containerRef: RefObject<HTMLDivElement | null> = useRef(null);
+  // const [notes, setNotes] = useState(fragment1);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const renderer = new Renderer(containerRef.current, Renderer.Backends.SVG);
+    const scale = props.scale ? props.scale : 1.0;
     const width = props.width ? props.width : 500;
     const height = props.height ? props.height : 200;
-    const scale = props.scale ? props.scale : 1.0;
+    const notes = props.fragment;
 
-    // Configure the rendering context.
     renderer.resize(width, height);
+
     const context = renderer.getContext();
     context.scale(scale, scale);
 
-    // Create a stave of width 400 at position 10, 40 on the canvas.
-    const stave = new Stave(0, 0, props.width-5);
 
-    // Add a clef and time signature.
-    // stave.addClef("treble").addTimeSignature("4/4");
+    const stave = new Stave(0, 0, width - 5);
+    if (notes.clef) { stave.addClef(notes.clef) }
+    if (notes.time) { stave.addTimeSignature(notes.time) }
 
-    // Connect it to the rendering context and draw!
     stave.setContext(context).draw();
 
-    const notes1 = [
-      dotted(
-        new StaveNote({
-          keys: ["e##/5"],
-          duration: "8d",
-        }).addModifier(new Accidental("##"))
-      ),
-      new StaveNote({
-        keys: ["b/4"],
-        duration: "16",
-      }).addModifier(new Accidental("b")),
-    ];
+    const staveNotes = Array.from(notes.notes, (note) => {
+      var sn = new StaveNote({
+        keys: [note.key],
+        duration: note.duration,
+      });
+      if (note.accidental) { sn.addModifier(new Accidental(note.accidental)) }
+      return sn;
+    })
 
-    const notes2 = [
-      new StaveNote({
-        keys: ["c/4"],
-        duration: "8",
-      }),
-      new StaveNote({
-        keys: ["d/4"],
-        duration: "16",
-      }),
-      new StaveNote({
-        keys: ["e/4"],
-        duration: "16",
-      }).addModifier(new Accidental("b")),
-    ];
+    const beams = Beam.generateBeams(staveNotes, {flatBeams: true});
+    Formatter.FormatAndDraw(context, stave, staveNotes);
 
-    const notes3 = [
-      new StaveNote({
-        keys: ["d/4"],
-        duration: "16",
-      }),
-      new StaveNote({
-        keys: ["e/4"],
-        duration: "16",
-      }).addModifier(new Accidental("#")),
-      new StaveNote({
-        keys: ["g/4"],
-        duration: "32",
-      }),
-      new StaveNote({
-        keys: ["a/4"],
-        duration: "32",
-      }),
-      new StaveNote({
-        keys: ["g/4"],
-        duration: "16",
-      }),
-    ];
-
-    const notes4 = [
-      new StaveNote({
-        keys: ["d/4"],
-        duration: "q",
-      }),
-    ];
-
-    const allNotes = notes1.concat(notes2).concat(notes3).concat(notes4);
-
-    // Create the beams for the first three groups.
-    // This hides the normal stems and flags.
-    const beams = [new Beam(notes1), new Beam(notes2), new Beam(notes3)];
-
-    const box = Formatter.FormatAndDraw(context, stave, allNotes);
-
-    // Draw the beams and stems.
     beams.forEach((b) => {
       b.setContext(context).draw();
     });
 
-    // Helper function.
-    function dotted(staveNote: StaveNote) {
-      Dot.buildAndAttach([staveNote]);
-      return staveNote;
+    const svg = containerRef.current.querySelector("svg");
+    if (svg != null) {
+      svg.setAttribute("width", `${width * scale}`);
+      svg.setAttribute("height", `${height * scale}`);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     }
   }, []);
 

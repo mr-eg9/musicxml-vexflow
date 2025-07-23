@@ -5,6 +5,10 @@
   --foreground: #171717;
 }
 
+.noteFragments {
+    display: inline-block
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
