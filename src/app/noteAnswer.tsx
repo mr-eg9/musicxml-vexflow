@@ -1,7 +1,7 @@
 'use client'
 
 import { DragEvent, MouseEvent, RefObject, useEffect, useRef, useState } from "react";
-import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam, BarlineType } from "vexflow";
+import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam, BarlineType, Dot } from "vexflow";
 import { NoteFragmentData } from "./noteFragment";
 
 type Props = {
@@ -113,6 +113,11 @@ export default function NoteAnswer(props: Props) {
             duration: note.duration,
           });
           if (note.accidental) { sn.addModifier(new Accidental(note.accidental)) }
+          if (note.dots) {
+            for (var i = 0; i < note.dots; i++) {
+              Dot.buildAndAttach([sn]);
+            }
+          }
           return sn;
         })
 

@@ -1,56 +1,19 @@
-import VexFlow from "vexflow";
-import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam, Dot, StaveTie } from "vexflow";
-
-import NoteFragment, { NoteFragmentData } from "@/app/noteFragment";
+import NoteFragment from "@/app/noteFragment";
 import NoteAnswer from "./noteAnswer";
+import { promises as fs } from "node:fs";
+import { parsePart1 } from "./mxmlParse";
 
-const fragment1: NoteFragmentData = {
-  clef: null,
-  time: null,
-  notes: [
-    { key: "c/4", duration: "4", accidental: null },
-    { key: "d/4", duration: "4", accidental: null },
-    { key: "e/4", duration: "4", accidental: null },
-    { key: "f/4", duration: "4", accidental: null },
-  ],
-}
-
-const fragment2: NoteFragmentData = {
-  clef: null,
-  time: null,
-  notes: [
-    { key: "g/4", duration: "h", accidental: null },
-    { key: "g/4", duration: "h", accidental: null },
-  ],
-}
-
-const fragment3: NoteFragmentData = {
-  clef: null,
-  time: null,
-  notes: [
-    { key: "a/4", duration: "q", accidental: null },
-    { key: "a/4", duration: "q", accidental: null },
-    { key: "a/4", duration: "q", accidental: null },
-    { key: "a/4", duration: "q", accidental: null },
-  ],
-}
-
-const fragment4: NoteFragmentData = {
-  clef: null,
-  time: null,
-  notes: [
-    { key: "g/4", duration: "w", accidental: null },
-  ],
-}
+const ex1006Mxml = await fs.readFile(process.cwd() + '/src/app/res/1006.musicxml');
 
 export default function Home() {
+  const fragments = parsePart1(ex1006Mxml);
   return (
     <>
       <div style={{display: 'flex'}}>
-        <NoteFragment width={300} height={100} scale={0.7} fragment={fragment1} />
-        <NoteFragment width={300} height={100} scale={0.7} fragment={fragment2} />
-        <NoteFragment width={300} height={100} scale={0.7} fragment={fragment3} />
-        <NoteFragment width={300} height={100} scale={0.7} fragment={fragment4} />
+        <NoteFragment width={300} height={100} scale={0.7} fragment={fragments[0]} />
+        <NoteFragment width={300} height={100} scale={0.7} fragment={fragments[1]} />
+        <NoteFragment width={300} height={100} scale={0.7} fragment={fragments[2]} />
+        <NoteFragment width={300} height={100} scale={0.7} fragment={fragments[3]} />
       </div>
       <div>
         <NoteAnswer width={1300} height={100} scale={0.7} clef="treble" time="4/4" fragment_count={4} />

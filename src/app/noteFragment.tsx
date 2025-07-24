@@ -1,12 +1,13 @@
 'use client'
 
 import { RefObject, useEffect, useRef } from "react";
-import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam } from "vexflow";
+import { Renderer, Formatter, Stave, StaveNote, Accidental, Beam, Dot } from "vexflow";
 
 export type Note = {
   key: string,
   duration: string,
   accidental: "##" | "#" | "n" | "b" | "bb" | null,
+  dots?: number,
 }
 
 export type NoteFragmentData = {
@@ -57,6 +58,11 @@ export default function NoteFragment(props: Props) {
         duration: note.duration,
       });
       if (note.accidental) { sn.addModifier(new Accidental(note.accidental)) }
+      if (note.dots) {
+        for (var i = 0; i < note.dots; i++) {
+          Dot.buildAndAttach([sn]);
+        }
+      }
       return sn;
     })
 
